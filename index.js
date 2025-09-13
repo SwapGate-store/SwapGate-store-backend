@@ -12,7 +12,7 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors({
-  origin: ["*", "http://localhost", "http://127.0.0.1", "https://swapgate.vercel.app", "https://swapgate-store.com"],
+  origin: ["*", "http://localhost", "http://127.0.0.1", "https://swapgate.vercel.app","https://www.swapgate-store.com", "https://swapgate-store.com"],
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 app.use(express.json());
@@ -32,8 +32,8 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const BOT_TOKEN = "8244783809:AAESM8DUsV9goMRYbGCjZxUtyYkw6UUtP_0";
-const CHAT_ID = "5734946501";
+const BOT_TOKEN = "8450510938:AAFMI453Ptd7Py-ibmScNmHK25qrSOQfURQ";
+const CHAT_ID = "7788536942";
 
 /**
  * @openapi
