@@ -75,6 +75,9 @@ app.get("/api/health", (req, res) => {
  *                 type: string
  *                 format: binary
  *                 description: User summary PDF file
+ *               exchange_name:
+ *                 type: string
+ *                 description: Exchange name or platform
  *               exchange_id:
  *                 type: string
  *                 description: Exchange transaction ID
@@ -84,6 +87,7 @@ app.get("/api/health", (req, res) => {
  *             required:
  *               - bank_slip
  *               - user_summary_pdf
+ *               - exchange_name
  *               - exchange_id
  *               - amount
  *     responses:
@@ -133,6 +137,7 @@ app.post("/api/send-msg", upload.fields([
     const userSummaryFile = req.files && req.files.user_summary_pdf ? req.files.user_summary_pdf[0] : null;
     
     // Get exchange details from form data
+    const exchangeName = req.body.exchange_name;
     const exchangeId = req.body.exchange_id;
     const amount = req.body.amount;
     
@@ -140,9 +145,19 @@ app.post("/api/send-msg", upload.fields([
       return res.status(400).json({ success: false, error: "Both files (bank_slip and user_summary_pdf) are required" });
     }
 
-    if (!exchangeId || !amount) {
-      return res.status(400).json({ success: false, error: "Exchange ID and amount are required" });
+    if (!exchangeName || !exchangeId || !amount) {
+      return res.status(400).json({ success: false, error: "Exchange name, exchange ID and amount are required" });
     }
+
+    // Send exchange name as separate message
+    await axios.post(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: `🏢 *Exchange Name:* ${exchangeName}`,
+        parse_mode: "Markdown"
+      }
+    );
 
     // Send exchange ID as separate message
     await axios.post(
@@ -179,7 +194,7 @@ app.post("/api/send-msg", upload.fields([
       }
     );
 
-    res.json({ success: true, telegram: summaryResponse.data, exchangeId, amount });
+    res.json({ success: true, telegram: summaryResponse.data, exchangeName, exchangeId, amount });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
