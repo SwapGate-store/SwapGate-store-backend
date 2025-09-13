@@ -154,7 +154,7 @@ app.post("/api/send-msg", upload.fields([
       `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
       {
         chat_id: CHAT_ID,
-        text: `🏢 *Exchange Name:* ${exchangeName}`,
+        text: `${exchangeName}`,
         parse_mode: "Markdown"
       }
     );
