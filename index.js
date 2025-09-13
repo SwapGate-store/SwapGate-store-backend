@@ -59,7 +59,7 @@ app.get("/api/health", (req, res) => {
  * @openapi
  * /api/send-msg:
  *   post:
- *     summary: Send two files (bank slip and user summary PDF) to Telegram bot
+ *     summary: Send two files (bank slip and user summary PDF) with exchange details to Telegram bot
  *     requestBody:
  *       required: true
  *       content:
@@ -75,9 +75,17 @@ app.get("/api/health", (req, res) => {
  *                 type: string
  *                 format: binary
  *                 description: User summary PDF file
+ *               exchange_id:
+ *                 type: string
+ *                 description: Exchange transaction ID
+ *               amount:
+ *                 type: string
+ *                 description: Exchange amount
  *             required:
  *               - bank_slip
  *               - user_summary_pdf
+ *               - exchange_id
+ *               - amount
  *     responses:
  *       200:
  *         description: Files sent successfully to Telegram
@@ -124,9 +132,37 @@ app.post("/api/send-msg", upload.fields([
     const bankSlipFile = req.files && req.files.bank_slip ? req.files.bank_slip[0] : null;
     const userSummaryFile = req.files && req.files.user_summary_pdf ? req.files.user_summary_pdf[0] : null;
     
+    // Get exchange details from form data
+    const exchangeId = req.body.exchange_id;
+    const amount = req.body.amount;
+    
     if (!bankSlipFile || !userSummaryFile) {
       return res.status(400).json({ success: false, error: "Both files (bank_slip and user_summary_pdf) are required" });
     }
+
+    if (!exchangeId || !amount) {
+      return res.status(400).json({ success: false, error: "Exchange ID and amount are required" });
+    }
+
+    // Send exchange ID as separate message
+    await axios.post(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: ` ${exchangeId}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send amount as separate message
+    await axios.post(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: `💰 *Amount:* ${amount}`,
+        parse_mode: "Markdown"
+      }
+    );
 
     // Send bank slip without caption
     await sendFileToTelegram(bankSlipFile, "", "Bank_Slip");
@@ -143,7 +179,7 @@ app.post("/api/send-msg", upload.fields([
       }
     );
 
-    res.json({ success: true, telegram: summaryResponse.data });
+    res.json({ success: true, telegram: summaryResponse.data, exchangeId, amount });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
