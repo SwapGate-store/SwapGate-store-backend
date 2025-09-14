@@ -35,6 +35,20 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const BOT_TOKEN = "8450510938:AAFMI453Ptd7Py-ibmScNmHK25qrSOQfURQ";
 const CHAT_ID = "7788536942";
 
+// Keep-alive mechanism for Render free tier (testing mode - no env variables)
+// Replace with your actual Render URL when deploying
+const RENDER_URL = "https://swapgate-store-backend.onrender.com"; // Update this with your actual Render URL
+
+// Self-ping every 14 minutes to prevent sleeping
+setInterval(async () => {
+  try {
+    await axios.get(`${RENDER_URL}/api/keep-alive`);
+    console.log(`✅ Keep-alive ping sent at ${new Date().toISOString()}`);
+  } catch (error) {
+    console.log(`❌ Keep-alive ping failed: ${error.message}`);
+  }
+}, 14 * 60 * 1000); // 14 minutes
+
 /**
  * @openapi
  * /api/health:
@@ -54,6 +68,34 @@ const CHAT_ID = "7788536942";
  */
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+/**
+ * @openapi
+ * /api/keep-alive:
+ *   get:
+ *     summary: Keep the server awake (for Render free tier)
+ *     responses:
+ *       200:
+ *         description: Server is awake
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: awake
+ *                 timestamp:
+ *                   type: string
+ *                   example: 2024-01-15T10:30:00.000Z
+ */
+app.get("/api/keep-alive", (req, res) => {
+  res.json({ 
+    status: "awake", 
+    timestamp: new Date().toISOString(),
+    message: "Server is running and ready to serve requests"
+  });
 });
 /**
  * @openapi
