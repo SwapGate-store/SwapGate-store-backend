@@ -35,15 +35,30 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const BOT_TOKEN = "8450510938:AAFMI453Ptd7Py-ibmScNmHK25qrSOQfURQ";
 const CHAT_ID = "7788536942";
 
-// Keep-alive mechanism for Render free tier (testing mode - no env variables)
+// Keep-alive mechanism for Render free tier (Sri Lanka timezone aware)
 // Replace with your actual Render URL when deploying
 const RENDER_URL = "https://swapgate-store-backend.onrender.com"; // Update this with your actual Render URL
 
-// Self-ping every 14 minutes to prevent sleeping
+// Function to check if current time is within Sri Lanka business hours (8 AM - 11 PM)
+function isSriLankaBusinessHours() {
+  const now = new Date();
+  // Convert to Sri Lanka time (UTC+5:30)
+  const sriLankaTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+  const hours = sriLankaTime.getUTCHours();
+  
+  // Business hours: 8 AM (8) to 11 PM (23)
+  return hours >= 8 && hours <= 23;
+}
+
+// Self-ping every 14 minutes, but only during Sri Lanka business hours
 setInterval(async () => {
   try {
-    await axios.get(`${RENDER_URL}/api/keep-alive`);
-    console.log(`✅ Keep-alive ping sent at ${new Date().toISOString()}`);
+    if (isSriLankaBusinessHours()) {
+      await axios.get(`${RENDER_URL}/api/keep-alive`);
+      console.log(`✅ Keep-alive ping sent at ${new Date().toISOString()} (Sri Lanka business hours)`);
+    } else {
+      console.log(`😴 Outside business hours - server can sleep (Sri Lanka time: ${new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000)).toISOString()})`);
+    }
   } catch (error) {
     console.log(`❌ Keep-alive ping failed: ${error.message}`);
   }
