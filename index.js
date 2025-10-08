@@ -32,8 +32,8 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const BOT_TOKEN = "8450510938:AAFMI453Ptd7Py-ibmScNmHK25qrSOQfURQ";
-const CHAT_ID = "7788536942";
+const BOT_TOKEN = "8487298525:AAEpFU7D8Q1h8K1LiDlZBDCceWyLpgWYv3o";
+const CHAT_ID = "8434905389";
 
 // Keep-alive mechanism for Render free tier (Sri Lanka timezone aware)
 // Replace with your actual Render URL when deploying
