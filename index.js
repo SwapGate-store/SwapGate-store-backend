@@ -369,7 +369,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `🏦 *Bank Name:* ${bankName}`,
+        text: ` ${bankName}`,
         parse_mode: "Markdown"
       }
     );
@@ -379,7 +379,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `🔢 *Account Number:* ${accountNumber}`,
+        text: `${accountNumber}`,
         parse_mode: "Markdown"
       }
     );
@@ -389,7 +389,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `👤 *Account Holder:* ${accountHolderName}`,
+        text: `${accountHolderName}`,
         parse_mode: "Markdown"
       }
     );
@@ -399,7 +399,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `💰 *Amount:* ${amount}`,
+        text: `${amount}`,
         parse_mode: "Markdown"
       }
     );
@@ -409,7 +409,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `📞 *Contact Number:* ${contactNumber}`,
+        text: `${contactNumber}`,
         parse_mode: "Markdown"
       }
     );
@@ -419,7 +419,7 @@ app.post("/api/sell-send-msg", upload.single("receipt"), async (req, res) => {
       `https://api.telegram.org/bot${SELL_TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: SELL_TELEGRAM_CHAT_ID,
-        text: `🌐 *Network:* ${network}`,
+        text: `${network}`,
         parse_mode: "Markdown"
       }
     );
